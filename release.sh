@@ -2,11 +2,10 @@
 set -e
 
 # ========== 配置 ==========
-# 运行 cd ~/hdm-dotnet
-# 直接跑，版本号自动生成，备注自动
-#   bash release.sh
-# 带自定义备注
-#   bash release.sh "修复了导入崩溃问题"
+# 用法:
+#   cd ~/hdm-dotnet
+#   bash release.sh                    # 自动版本号 + 自动备注
+#   bash release.sh "修复了导入崩溃问题"   # 自定义备注
 REPO_DIR="$HOME/hdm-dotnet"     # 项目目录
 FOLDER="publish-net"            # 要发布的文件夹
 # ==========================
@@ -29,21 +28,17 @@ if ! gh auth status >/dev/null 2>&1; then
   exit 1
 fi
 
-# ========== 1. 自动提交源码 ==========
+# ========== 1. 提交源码 ==========
 echo "📥 提交源码改动..."
-
-# 改成（排除压缩包）
 git add -A
-git reset -- '*.zip' '*.tar.gz' publish-net/ 2>/dev/null || true
+
 if git diff --cached --quiet; then
   echo "ℹ️  没有源码改动，跳过提交"
 else
   git commit -m "Release $VERSION: $NOTES"
-  echo "✅ 源码已提交"
+  git push origin main
+  echo "✅ 源码已提交并推送"
 fi
-
-echo "📤 推送源码到 GitHub..."
-git push origin main
 
 # ========== 2. 打包编译产物 ==========
 if [ ! -d "$FOLDER" ]; then
