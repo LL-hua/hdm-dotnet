@@ -1,0 +1,10 @@
+# .NET 编译产物
+bin/
+obj/
+
+# 发布产物
+publish-net/
+publish-net-*.zip
+publish-net-*.tar.gz
+*.zip
+*.tar.gz

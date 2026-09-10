@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLhdm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: #f0f2f5;
+            color: #1a2a3a;
+            padding: 20px;
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 50px 60px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-right: 10px;
+            background: #e8ecf1;
+            color: #3a4a5a;
+        }
+
+        .badge-go {
+            background: #00ADD8;
+            color: white;
+        }
+
+        .badge-platform {
+            background: #e8ecf1;
+            color: #3a4a5a;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 16px 0 8px 0;
+            color: #0a1a2a;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #4a5a6a;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #eef2f7;
+            padding-bottom: 16px;
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 32px 0 12px 0;
+            color: #0a1a2a;
+            border-left: 4px solid #3b7cff;
+            padding-left: 14px;
+        }
+
+        h3 {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 20px 0 8px 0;
+            color: #1a2a3a;
+        }
+
+        p {
+            margin: 8px 0;
+            color: #2a3a4a;
+        }
+
+        ul,
+        ol {
+            margin: 8px 0 16px 24px;
+        }
+
+        li {
+            margin: 4px 0;
+        }
+
+        code {
+            background: #f4f6f9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            color: #c7254e;
+        }
+
+        pre {
+            background: #1e2a36;
+            color: #e0e6ed;
+            padding: 16px 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 14px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            line-height: 1.6;
+            margin: 12px 0 20px 0;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .format-card {
+            background: #fafcfe;
+            border: 1px solid #e8ecf1;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+
+        .format-card h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eef2f7;
+            padding-bottom: 6px;
+        }
+
+        .format-card .file-info {
+            font-size: 14px;
+            color: #5a6a7a;
+            margin-bottom: 8px;
+        }
+
+        .format-card .file-info code {
+            background: #eef2f7;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #1a2a3a;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 4px 20px;
+            background: #f4f6f9;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin: 8px 0 12px 0;
+            font-size: 14px;
+        }
+
+        .meta-grid .label {
+            font-weight: 600;
+            color: #3a4a5a;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin: 10px 0 12px 0;
+        }
+
+        th {
+            background: #eef2f7;
+            font-weight: 600;
+            color: #1a2a3a;
+            padding: 8px 12px;
+            text-align: left;
+            border: 1px solid #dce0e8;
+        }
+
+        td {
+            padding: 8px 12px;
+            border: 1px solid #dce0e8;
+            color: #2a3a4a;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .example {
+            background: #1e2a36;
+            color: #e0e6ed;
+            padding: 12px 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            line-height: 1.7;
+            margin: 8px 0 4px 0;
+        }
+
+        .note {
+            background: #fff8e6;
+            border-left: 4px solid #f5a623;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #3a3a2a;
+            margin: 10px 0 6px 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 24px;
+            margin: 12px 0 20px 0;
+        }
+
+        .feature-grid li {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-grid li::before {
+            content: "✅ ";
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #eef2f7;
+            text-align: center;
+            color: #6a7a8a;
+            font-size: 15px;
+        }
+
+        .footer a {
+            color: #3b7cff;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .star {
+            display: inline-block;
+            background: #f5f0e0;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #7a6a3a;
+            margin-top: 10px;
+        }
+
+        .perf-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            background: #f7f9fc;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 12px 0 20px 0;
+        }
+
+        .perf-item {
+            text-align: center;
+        }
+
+        .perf-item .num {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0a1a2a;
+        }
+
+        .perf-item .label {
+            font-size: 13px;
+            color: #5a6a7a;
+        }
+
+        .structure {
+            background: #f7f9fc;
+            border-radius: 8px;
+            padding: 12px 18px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            overflow-x: auto;
+            margin: 8px 0 16px 0;
+        }
+
+        .config-example {
+            background: #1e2a36;
+            color: #e0e6ed;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            line-height: 1.7;
+            margin: 8px 0 4px 0;
+            overflow-x: auto;
+        }
+        .config-example .c {
+            color: #6a8a9a;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px 18px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .perf-box {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .meta-grid {
+                grid-template-columns: 1fr;
+                gap: 2px;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            th,
+            td {
+                padding: 6px 8px;
+            }
+
+            .format-card {
+                padding: 14px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px 12px;
+            }
+
+            .badge {
+                font-size: 11px;
+                padding: 2px 10px;
+                margin-right: 4px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .subtitle {
+                font-size: 15px;
+            }
+
+            .perf-box {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                padding: 12px 14px;
+            }
+
+            .perf-item .num {
+                font-size: 18px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th,
+            td {
+                padding: 4px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- 标题区 -->
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
+            <span class="badge badge-go">Go 1.21+</span>
+            <span class="badge badge-platform">Windows</span>
+            <span class="badge badge-platform">Linux</span>
+            <span class="badge badge-platform">Android</span>
+        </div>
+
+        <h1>LLhdm-go 测绘自动化系统</h1>
+        <div class="subtitle">
+            基于 Go 语言开发的横断面计算与图纸生成工具，专为测绘与道路工程设计打造。
+        </div>
+
+        <!-- 简介 -->
+        <h2>📖 项目简介</h2>
+        <p><strong>LLhdm-go</strong> 是一套完整的测绘横断面自动化处理系统，从地形点云、平曲线、竖曲线、边坡、结构层到横断面生成、方量统计、DXF 图纸输出，全流程自动化。支持 <strong>Windows / Linux / Android</strong> 跨平台运行，<strong>单文件部署，无需任何依赖</strong>。</p>
+
+        <!-- 功能特性 -->
+        <h2>✨ 功能特性</h2>
+        <ul class="feature-grid">
+            <li>平曲线正算/反算</li>
+            <li>竖曲线高程计算</li>
+            <li>地形三角网构建（Delaunay）</li>
+            <li>横断面切割</li>
+            <li>填/挖方边坡自动判断</li>
+            <li>结构层逐层生成</li>
+            <li>清表线自动偏移</li>
+            <li>填挖面积精确计算</li>
+            <li>方量统计 CSV 报表</li>
+            <li>DXF 图纸生成（A4 图幅）</li>
+            <li>HTML/SVG 交互式预览</li>
+            <li>桩号搜索与可视化</li>
+            <li>文字大小可调（手机/平板/电脑适配）</li>
+            <li>项目级配置文件支持</li>
+        </ul>
+
+        <!-- 项目结构 -->
+        <h2>📁 项目结构</h2>
+        <div class="structure">
+            LLhdm-go/<br>
+            ├── main.go                 # 程序入口（交互式项目选择）<br>
+            ├── config/                 # 全局配置与输出生成<br>
+            │   ├── config.go           # 常量 + 配置文件加载<br>
+            │   ├── csv_builder.go      # CSV 报表生成<br>
+            │   ├── dxf_builder.go      # DXF 图纸组装<br>
+            │   └── html_builder.go     # HTML/SVG 可视化生成<br>
+            ├── llutil/                 # 核心算法库<br>
+            │   └── llutil.go           # 平/竖曲线、面积、DXF实体、坐标转换等<br>
+            ├── bianpo/                 # 边坡模块<br>
+            │   └── bianpo.go           # 边坡解析、查找、绝对坐标<br>
+            ├── jiegouceng/             # 结构层模块<br>
+            │   └── jiegouceng.go       # 结构层计算、横坡管理<br>
+            ├── topslope/               # 路面板块模块<br>
+            │   └── topslope.go         # 宽度/横坡解析与插值<br>
+            ├── terrain/                # 地形模块<br>
+            │   └── terrain.go          # 三角网构建、空间网格、线段切割<br>
+            ├── section/                # 横断面计算引擎<br>
+            │   └── section.go          # 整合所有模块，单桩号计算<br>
+            └── processor/              # 项目处理器<br>
+                └── processor.go        # 加载数据 → 循环桩号 → 输出成果
+        </div>
+
+        <!-- 快速开始 -->
+        <h2>🚀 快速开始</h2>
+        <h3>1. 编译运行</h3>
+        <pre><code># 安装依赖
+go mod tidy
+
+# 运行程序
+go run main.go
+
+# 编译单文件
+go build -ldflags="-s -w" -o LLhdm.exe   # Windows
+go build -ldflags="-s -w" -o LLhdm        # Linux/macOS</code></pre>
+
+        <h3>2. 使用流程</h3>
+        <ol>
+            <li>将项目数据放在以项目名命名的文件夹中（如 <code>lot1/</code>）</li>
+            <li>运行程序，选择对应的项目序号</li>
+            <li>程序自动完成所有计算，输出到 <code>项目名/result/</code> 目录</li>
+        </ol>
+
+        <h3>3. 输出成果</h3>
+        <ul>
+            <li><code>项目名.csv</code> — 方量统计报表</li>
+            <li><code>项目名.dxf</code> — 横断面图（A4 图幅）</li>
+            <li><code>项目名.html</code> — 交互式 SVG 预览（浏览器打开，支持文字大小调节）</li>
+        </ul>
+
+        <!-- 性能 -->
+        <h2>📊 性能表现</h2>
+        <div class="perf-box">
+            <div class="perf-item">
+                <div class="num">231</div>
+                <div class="label">测试桩号数</div>
+            </div>
+            <div class="perf-item">
+                <div class="num">~78ms</div>
+                <div class="label">处理耗时</div>
+            </div>
+            <div class="perf-item">
+                <div class="num">~40MB</div>
+                <div class="label">内存占用</div>
+            </div>
+            <div class="perf-item">
+                <div class="num">711KB</div>
+                <div class="label">文件体积 (Windows)</div>
+            </div>
+        </div>
+
+        <!-- 数据格式 -->
+        <h2>🛠️ 数据格式说明</h2>
+        <p>所有数据文件采用 UTF-8 编码，支持逗号、空格或制表符分隔。以 <code>;</code> 或 <code>#</code> 开头的行为注释行，程序会自动跳过。</p>
+
+        <!-- 1. 平曲线 -->
+        <div class="format-card">
+            <h3>1. 平曲线文件 <code>项目名.pqx</code></h3>
+            <div class="file-info">第一行：无表头，直接数据 | 8 列</div>
+            <table>
+                <tr><th>列序</th><th>名称</th><th>单位</th><th>说明</th></tr>
+                <tr><td>1</td><td>里程</td><td>m</td><td>该段起点里程</td></tr>
+                <tr><td>2</td><td>X</td><td>m</td><td>起点 X 坐标</td></tr>
+                <tr><td>3</td><td>Y</td><td>m</td><td>起点 Y 坐标</td></tr>
+                <tr><td>4</td><td>方位角</td><td>度分秒</td><td>十进制格式，如 181.062510</td></tr>
+                <tr><td>5</td><td>长度</td><td>m</td><td>该段长度</td></tr>
+                <tr><td>6</td><td>半径1</td><td>m</td><td>起点半径，直线为 0</td></tr>
+                <tr><td>7</td><td>半径2</td><td>m</td><td>终点半径，直线为 0</td></tr>
+                <tr><td>8</td><td>转向</td><td>-</td><td>左转 1，右转 -1</td></tr>
+            </table>
+            <div class="example">57415.250, 9635916.871, 433821.286, 181.062510, 150.000, 0, 99999999, 1</div>
+        </div>
+
+        <!-- 2. 竖曲线 -->
+        <div class="format-card">
+            <h3>2. 竖曲线文件 <code>项目名.sqx</code></h3>
+            <div class="file-info">第一行：无表头，直接数据 | 3 列</div>
+            <table>
+                <tr><th>列序</th><th>名称</th><th>单位</th><th>说明</th></tr>
+                <tr><td>1</td><td>里程</td><td>m</td><td>变坡点里程</td></tr>
+                <tr><td>2</td><td>高程</td><td>m</td><td>设计高程</td></tr>
+                <tr><td>3</td><td>半径</td><td>m</td><td>0 表示无竖曲线</td></tr>
+            </table>
+            <div class="example">57415.250, 1269.365, 0<br>60000.000, 1258.000, 20000</div>
+        </div>
+
+        <!-- 3. 桩号表 -->
+        <div class="format-card">
+            <h3>3. 桩号表文件 <code>项目名.k</code></h3>
+            <div class="file-info">第一行：无表头，直接数据 | 3 列</div>
+            <table>
+                <tr><th>列序</th><th>名称</th><th>单位</th><th>说明</th></tr>
+                <tr><td>1</td><td>里程</td><td>m</td><td>计算桩号</td></tr>
+                <tr><td>2</td><td>左偏距</td><td>m</td><td>通常 0</td></tr>
+                <tr><td>3</td><td>右偏距</td><td>m</td><td>通常 0</td></tr>
+            </table>
+            <div class="example">57415.250, 0, 0</div>
+        </div>
+
+        <!-- 4. 地形点云 -->
+        <div class="format-card">
+            <h3>4. 地形点云文件 <code>项目名.xyz</code></h3>
+            <div class="file-info">第一行：表头（自动跳过） | 3 列</div>
+            <table>
+                <tr><th>列序</th><th>名称</th><th>单位</th><th>说明</th></tr>
+                <tr><td>1</td><td>X</td><td>m</td><td>平面坐标 X</td></tr>
+                <tr><td>2</td><td>Y</td><td>m</td><td>平面坐标 Y</td></tr>
+                <tr><td>3</td><td>Z</td><td>m</td><td>高程</td></tr>
+            </table>
+            <div class="example">9635900.000, 433800.000, 1269.000</div>
+        </div>
+
+        <!-- 5. 路面板块 -->
+        <div class="format-card">
+            <h3>5. 路面板块文件 <code>项目名.leftslope</code> / <code>项目名.rightslope</code></h3>
+            <div class="file-info">第一行：表头（自动跳过） | 桩号, 宽度1, 横坡1, 宽度2, 横坡2, ...</div>
+            <table>
+                <tr><th>列序</th><th>名称</th><th>单位</th><th>说明</th></tr>
+                <tr><td>1</td><td>桩号</td><td>m</td><td>断面里程</td></tr>
+                <tr><td>2,4,...</td><td>宽度</td><td>m</td><td>左负右正</td></tr>
+                <tr><td>3,5,...</td><td>横坡</td><td>%</td><td>左幅负，右幅正</td></tr>
+            </table>
+            <div class="example">0, -1.5, -2.5, -5.0, -2.5</div>
+        </div>
+
+        <!-- 6. 边坡参数 -->
+        <div class="format-card">
+            <h3>6. 边坡参数文件 <code>项目名.bianpo</code></h3>
+            <div class="file-info">第一行：注释（以 ; 开头） | 每 5 行为一组</div>
+            <table>
+                <tr><th>行</th><th>格式</th><th>说明</th></tr>
+                <tr><td>1</td><td>起始桩号, 结束桩号</td><td>该段落范围</td></tr>
+                <tr><td>2</td><td>leftfill, dx, dy, dx, dy, ...</td><td>左填相对位移</td></tr>
+                <tr><td>3</td><td>leftcut, dx, dy, dx, dy, ...</td><td>左挖相对位移</td></tr>
+                <tr><td>4</td><td>rightfill, dx, dy, dx, dy, ...</td><td>右填相对位移</td></tr>
+                <tr><td>5</td><td>rightcut, dx, dy, dx, dy, ...</td><td>右挖相对位移</td></tr>
+            </table>
+            <div class="example">; 起始,结束<br>75300,102300<br>leftfill,-9.0,-4.5,-1.5,0.0,-14.0,-8.0</div>
+        </div>
+
+        <!-- 7. 结构层 -->
+        <div class="format-card">
+            <h3>7. 结构层文件 <code>项目名.leftstructure</code> / <code>项目名.rightstructure</code></h3>
+            <div class="file-info">第一行：注释（以 ; 开头） | 9 列</div>
+            <table>
+                <tr><th>列序</th><th>名称</th><th>单位</th><th>说明</th></tr>
+                <tr><td>1</td><td>起始桩号</td><td>m</td><td>配置起点</td></tr>
+                <tr><td>2</td><td>结束桩号</td><td>m</td><td>配置终点</td></tr>
+                <tr><td>3</td><td>层序</td><td>-</td><td>从 1 开始递增</td></tr>
+                <tr><td>4</td><td>层名</td><td>-</td><td>如 top, CRR, C1</td></tr>
+                <tr><td>5</td><td>厚度</td><td>m</td><td>层厚</td></tr>
+                <tr><td>6</td><td>内台阶宽</td><td>m</td><td>内缩宽度</td></tr>
+                <tr><td>7</td><td>内坡</td><td>-</td><td>内坡率（绝对值）</td></tr>
+                <tr><td>8</td><td>外台阶宽</td><td>m</td><td>外扩宽度</td></tr>
+                <tr><td>9</td><td>外坡</td><td>-</td><td>外坡率（绝对值）</td></tr>
+            </table>
+            <div class="example">99100,117500,1,top,0.05,0,0.0,-5,-2</div>
+        </div>
+
+        <!-- 8. 横坡变化 -->
+        <div class="format-card">
+            <h3>8. 横坡变化文件 <code>项目名.leftcrossfall</code> / <code>项目名.rightcrossfall</code></h3>
+            <div class="file-info">第一行：表头（自动跳过） | 2 列</div>
+            <table>
+                <tr><th>列序</th><th>名称</th><th>单位</th><th>说明</th></tr>
+                <tr><td>1</td><td>桩号</td><td>m</td><td>控制点里程</td></tr>
+                <tr><td>2</td><td>横坡</td><td>%</td><td>线性插值</td></tr>
+            </table>
+            <div class="example">0, -2.5<br>50000, -2.5</div>
+        </div>
+
+        <!-- 9. 项目配置文件 -->
+        <div class="format-card">
+            <h3>9. 项目配置文件 <code>项目名.config</code></h3>
+            <div class="file-info">可选文件，用于覆盖默认参数 | 每行一个配置项，等号分隔，分号后为注释</div>
+            <table>
+                <tr><th>参数名</th><th>默认值</th><th>说明</th></tr>
+                <tr><td>ClearDepth</td><td>-0.3</td><td>清表深度（负值表示向下）</td></tr>
+                <tr><td>A4WidthMM</td><td>297.0</td><td>A4 图纸宽度（毫米）</td></tr>
+                <tr><td>A4HeightMM</td><td>210.0</td><td>A4 图纸高度（毫米）</td></tr>
+                <tr><td>A4Gap</td><td>30.0</td><td>图纸边距（毫米）</td></tr>
+                <tr><td>XyzRows</td><td>35</td><td>地形网格行数</td></tr>
+                <tr><td>XyzCols</td><td>60</td><td>地形网格列数</td></tr>
+                <tr><td>TextScaleFactor</td><td>3.0</td><td>文字缩放因子</td></tr>
+                <tr><td>LineSpacingFactor</td><td>1.5</td><td>行距因子</td></tr>
+            </table>
+            <div class="config-example">
+                <span class="c">; 项目配置文件</span><br>
+                ClearDepth = -0.3    <span class="c">; 清表深度（负值表示向下）</span><br>
+                A4WidthMM = 297.0    <span class="c">; A4图纸宽度（毫米）</span><br>
+                A4HeightMM = 210.0   <span class="c">; A4图纸高度（毫米）</span><br>
+                A4Gap = 30.0         <span class="c">; 图纸边距（毫米）</span><br>
+                XyzRows = 35         <span class="c">; 地形网格行数</span><br>
+                XyzCols = 60         <span class="c">; 地形网格列数</span><br>
+                TextScaleFactor = 3.0        <span class="c">; 文字缩放因子</span><br>
+                LineSpacingFactor = 1.5      <span class="c">; 行距因子</span>
+            </div>
+            <div class="note">📌 配置文件为可选，不存在时使用内置默认值。每行参数说明跟随在分号后，便于阅读。</div>
+        </div>
+
+        <!-- 10. 项目文件夹结构 -->
+        <div class="format-card">
+            <h3>10. 项目文件夹结构</h3>
+            <div class="structure">
+                lot1/<br>
+                ├── lot1.config          # 项目配置（可选）<br>
+                ├── lot1.pqx             # 平曲线（必需）<br>
+                ├── lot1.sqx             # 竖曲线（必需）<br>
+                ├── lot1.k               # 桩号表（必需）<br>
+                ├── lot1.xyz             # 地形点云（必需）<br>
+                ├── lot1.leftslope       # 左侧路面板块（必需）<br>
+                ├── lot1.rightslope      # 右侧路面板块（必需）<br>
+                ├── lot1.bianpo          # 边坡参数（必需）<br>
+                ├── lot1.leftstructure   # 左侧结构层（可选）<br>
+                ├── lot1.rightstructure  # 右侧结构层（可选）<br>
+                ├── lot1.leftcrossfall   # 左侧横坡变化（可选）<br>
+                ├── lot1.rightcrossfall  # 右侧横坡变化（可选）<br>
+                └── result/              # 输出目录（自动创建）<br>
+                    ├── lot1.csv<br>
+                    ├── lot1.dxf<br>
+                    └── lot1.html
+            </div>
+            <div class="note">📌 所有文件使用相同前缀，程序自动匹配。</div>
+        </div>
+
+        <!-- 技术栈 -->
+        <h2>🔧 技术栈</h2>
+        <ul>
+            <li><strong>语言</strong>：Go 1.21+</li>
+            <li><strong>三角剖分</strong>：<code>github.com/fogleman/delaunay</code></li>
+            <li><strong>输出格式</strong>：CSV / DXF / HTML+SVG</li>
+        </ul>
+
+        <!-- 部署 -->
+        <h2>📦 部署</h2>
+        <p>单文件部署，无需安装任何运行时：</p>
+        <ul>
+            <li><strong>Windows</strong>：双击 <code>LLhdm.exe</code> 运行</li>
+            <li><strong>Linux/macOS</strong>：<code>./LLhdm</code> 运行</li>
+            <li><strong>Android (Termux)</strong>：<code>./LLhdm_android</code> 运行</li>
+        </ul>
+
+        <!-- 许可证 -->
+        <h2>📄 许可证</h2>
+        <p>本项目仅供学习与研究使用，商业使用请联系作者。</p>
+
+        <!-- 致谢 -->
+        <h2>🙏 致谢</h2>
+        <p>感谢开源社区提供的优秀工具与灵感。</p>
+
+        <!-- 联系 -->
+        <h2>📬 联系方式</h2>
+        <ul>
+            <li>GitHub：<a href="https://github.com/ccecc-73">ccecc-73</a></li>
+            <li>项目地址：<a href="https://github.com/ccecc-73/LLhdm-go">LLhdm-go</a></li>
+        </ul>
+
+        <div class="star">⭐ 如果这个项目对您有帮助，欢迎点个 Star！</div>
+
+        <div class="footer">
+            <a href="https://github.com/ccecc-73/LLhdm-go">GitHub · ccecc-73</a>
+        </div>
+
+    </div>
+</body>
+</html>

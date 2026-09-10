@@ -1,0 +1,23 @@
+cd ~/hdm-dotnet
+
+
+
+
+单文件运行
+
+cd ~/hdm-dotnet
+
+dotnet publish -c Release \
+  -r win-x64 \
+  --self-contained true \
+  -p:PublishSingleFile=true \
+  -p:IncludeNativeLibrariesForSelfExtract=true \
+  -p:EnableCompressionInSingleFile=true \
+  -o publish-win \
+  
+  
+  依赖运行时单文件
+  dotnet publish -c Release -r win-x64 \
+  --self-contained false \
+  -p:PublishSingleFile=true \
+  -o publish-net8
