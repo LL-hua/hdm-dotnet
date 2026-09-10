@@ -1,0 +1,13 @@
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.config
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.k
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.pqx
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.sqx
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.原地面
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.右板块
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.右结构层
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.右结构层横坡
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.左板块
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.左结构层
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.左结构层横坡
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/lot1/lot1.边坡
+/data/data/com.termux/files/home/hdm-dotnet/publish-win/hdm.exe
