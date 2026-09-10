@@ -31,8 +31,10 @@ fi
 
 # ========== 1. 自动提交源码 ==========
 echo "📥 提交源码改动..."
-git add -A
 
+# 改成（排除压缩包）
+git add -A
+git reset -- '*.zip' '*.tar.gz' publish-net/ 2>/dev/null || true
 if git diff --cached --quiet; then
   echo "ℹ️  没有源码改动，跳过提交"
 else
