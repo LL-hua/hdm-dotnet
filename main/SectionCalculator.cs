@@ -11,7 +11,7 @@ public class ComputeResult {
 }
 
 public class SectionCalculator {
-    private readonly double[,] _mesh;
+    private readonly double[][] _mesh;
     private readonly double[,] _pqx;
     private readonly double[,] _sqx;
     private readonly List<DuanMianShuJu> _leftWidths;
@@ -23,7 +23,7 @@ public class SectionCalculator {
     private readonly List<RightJiegoucengConfig> _rightStructures;
 
     public SectionCalculator(
-        double[,] mesh,
+        double[][] mesh,
         double[,] pqx,
         double[,] sqx,
         List<DuanMianShuJu> leftWidths,

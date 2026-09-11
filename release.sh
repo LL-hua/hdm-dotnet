@@ -5,7 +5,7 @@ set -e
 # 用法:
 #   cd ~/hdm-dotnet
 #   bash release.sh                    # 自动版本号 + 自动备注
-#   bash release.sh "修复了导入崩溃问题"   # 自定义备注
+#   bash release.sh "配置文件添加是否输出dxf,svg"   # 自定义备注
 REPO_DIR="$HOME/hdm-dotnet"     # 项目目录
 FOLDER="publish-net"            # 要发布的文件夹
 # ==========================

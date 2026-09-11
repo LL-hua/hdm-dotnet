@@ -4,11 +4,12 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Globalization;
 namespace LLutile {
     public class LL {
         private static readonly double[] GaussRr = { 0.1739274226, 0.3260725774, 0.3260725774, 0.1739274226 };
         private static readonly double[] GaussVv = { 0.0694318442, 0.3300094782, 0.6699905218, 0.9305681558 };
-
+private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
         public static double[,] BuildClearPolygon(double[,] ground, double[,] cleared, double minX, double maxX) {
             var list = new List<double[]>();
             list.Add(new double[] { minX, LL.FromXgetY(ground, minX) });
@@ -61,148 +62,81 @@ namespace LLutile {
         }
 
         public static void AppendDxfLwPolyline(StringBuilder sb, double[,] points, double offsetX, double offsetY, string layer = "0", int colorIndex = 7) {
-            int vertexCount = points.GetLength(0);
-            if (vertexCount < 2) return;
+    int vertexCount = points.GetLength(0);
+    if (vertexCount < 2) return;
 
-            // 1) 声明一条经典折线的开始
-            sb.AppendLine("  0");
-            sb.AppendLine("POLYLINE");
-            sb.AppendLine("  8");
-            sb.AppendLine(layer);
-            sb.AppendLine(" 62");          // 注入颜色组码
-            sb.AppendLine(colorIndex.ToString());
-            sb.AppendLine(" 66");          // 核心：通知 CAD 后面有一串子顶点
-            sb.AppendLine("  1");
+    string colorStr = colorIndex.ToString(Inv);
 
-            // 2) 循环展开、高精度安全写入每个子顶点
-            for (int i = 0; i < vertexCount; i++) {
-                double absoluteX = points[i, 0] + offsetX;
-                double absoluteY = points[i, 1] + offsetY;
+    sb.Append("  0\nPOLYLINE\n  8\n").Append(layer)
+      .Append("\n 62\n").Append(colorStr)
+      .Append("\n 66\n  1\n");
 
-                sb.AppendLine("  0");
-                sb.AppendLine("VERTEX");
-                sb.AppendLine("  8");
-                sb.AppendLine(layer);
-                sb.AppendLine(" 62");      // 子顶点跟随主线颜色
-                sb.AppendLine(colorIndex.ToString());
-                sb.AppendLine(" 10");      // X 坐标
-                sb.AppendLine(absoluteX.ToString("F3"));
-                sb.AppendLine(" 20");      // Y 坐标
-                sb.AppendLine(absoluteY.ToString("F3"));
-            }
+    for (int i = 0; i < vertexCount; i++) {
+        double absoluteX = points[i, 0] + offsetX;
+        double absoluteY = points[i, 1] + offsetY;
 
-            // 3) 核心闭合：声明整个多段线图元正式结束
-            sb.AppendLine("  0");
-            sb.AppendLine("SEQEND");
-            sb.AppendLine("  8");
-            sb.AppendLine(layer);
-        }
+        sb.Append("  0\nVERTEX\n  8\n").Append(layer)
+          .Append("\n 62\n").Append(colorStr)
+          .Append("\n 10\n").Append(absoluteX.ToString("F3", Inv))
+          .Append("\n 20\n").Append(absoluteY.ToString("F3", Inv))
+          .Append('\n');
+    }
+
+    sb.Append("  0\nSEQEND\n  8\n").Append(layer).Append('\n');
+}
 
 
         public static void AppendDxfText(StringBuilder sb, string content, double x, double y, double height = 2.5, string layer = "TEXT_INFO") {
-
-            sb.AppendLine("  0");
-            sb.AppendLine("TEXT");
-            sb.AppendLine("  8");
-            sb.AppendLine(layer);
-            sb.AppendLine(" 10");
-            sb.AppendLine(x.ToString("F3"));
-            sb.AppendLine(" 20");
-            sb.AppendLine(y.ToString("F3"));
-            sb.AppendLine(" 40");
-            sb.AppendLine(height.ToString("F2"));
-            sb.AppendLine("  1");
-            sb.AppendLine(content);
-
-
-        }
-
+    sb.Append("  0\nTEXT\n  8\n").Append(layer)
+      .Append("\n 10\n").Append(x.ToString("F3", Inv))
+      .Append("\n 20\n").Append(y.ToString("F3", Inv))
+      .Append("\n 40\n").Append(height.ToString("F2", Inv))
+      .Append("\n  1\n").Append(content)
+      .Append('\n');
+}
         public static void AppendDxfTextCenter(StringBuilder sb, string content, double x, double y, double height = 2.5, string layer = "TEXT_INFO", double rotation = 0.0) {
-            sb.AppendLine("  0");
-            sb.AppendLine("TEXT");
-            sb.AppendLine("  8");
-            sb.AppendLine(layer);
+    sb.Append("  0\nTEXT\n  8\n").Append(layer)
+      .Append("\n 10\n").Append(x.ToString("F3", Inv))
+      .Append("\n 20\n").Append(y.ToString("F3", Inv))
+      .Append("\n 40\n").Append(height.ToString("F3", Inv))
+      .Append("\n 50\n").Append(rotation.ToString("F3", Inv))
+      .Append("\n  1\n").Append(content);
 
-            // 10/20 永远是你的绝对插入点
-            sb.AppendLine(" 10");
-            sb.AppendLine(x.ToString("F3"));
-            sb.AppendLine(" 20");
-            sb.AppendLine(y.ToString("F3"));
-
-            sb.AppendLine(" 40");
-            sb.AppendLine(height.ToString("F3"));
-
-            sb.AppendLine(" 50");
-            sb.AppendLine(rotation.ToString("F3"));
-
-            sb.AppendLine("  1");
-            sb.AppendLine(content);
-
-            // 🎯 完美的对齐与旋转切换控制
-            if (Math.Abs(rotation) < 0.001) {
-                // 1️⃣ 0度水平文字：使用居中对齐（72=1）
-                // 此时 11/21 作为中心点，它与 10/20 重合，在 0 度下显示完美
-                sb.AppendLine(" 72");
-                sb.AppendLine("  1");
-                sb.AppendLine(" 11");
-                sb.AppendLine(x.ToString("F3"));
-                sb.AppendLine(" 21");
-                sb.AppendLine(y.ToString("F3"));
-            } else {
-
-            }
-        }
+    if (Math.Abs(rotation) < 0.001) {
+        sb.Append("\n 72\n  1")
+          .Append("\n 11\n").Append(x.ToString("F3", Inv))
+          .Append("\n 21\n").Append(y.ToString("F3", Inv));
+    }
+    sb.Append('\n');
+}
 
 
 
         public static void AppendDxfTextSlope(StringBuilder sb, string content, double x, double y, double height, double rotationDegrees, string layer = "SLOPE_TEXT_SIDE") {
+    double cleanAngle = rotationDegrees;
+    while (cleanAngle > 90.0) cleanAngle -= 180.0;
+    while (cleanAngle <= -90.0) cleanAngle += 180.0;
 
-            double cleanAngle = rotationDegrees;
-            while (cleanAngle > 90.0) cleanAngle -= 180.0;
-            while (cleanAngle <= -90.0) cleanAngle += 180.0;
+    double angleRad = cleanAngle * (Math.PI / 180.0);
+    double offsetDistance = height * 0.6;
 
+    double offsetX = -Math.Sin(angleRad) * offsetDistance;
+    double offsetY = Math.Cos(angleRad) * offsetDistance;
 
-            double angleRad = cleanAngle * (Math.PI / 180.0);
-            double offsetDistance = height * 0.6;
+    double finalX = x + offsetX;
+    double finalY = y + offsetY;
 
-
-            double offsetX = -Math.Sin(angleRad) * offsetDistance;
-            double offsetY = Math.Cos(angleRad) * offsetDistance;
-
-            double finalX = x + offsetX;
-            double finalY = y + offsetY;
-
-            sb.AppendLine("  0");
-            sb.AppendLine("TEXT");
-            sb.AppendLine("  8");
-            sb.AppendLine(layer);
-
-            // Primary insertion coordinates
-            sb.AppendLine(" 10");
-            sb.AppendLine(finalX.ToString("F3"));
-            sb.AppendLine(" 20");
-            sb.AppendLine(finalY.ToString("F3"));
-
-            sb.AppendLine(" 40");
-            sb.AppendLine(height.ToString("F3"));
-            sb.AppendLine(" 50");
-            sb.AppendLine(cleanAngle.ToString("F3"));
-            sb.AppendLine("  1");
-            sb.AppendLine(content);
-
-            // 🌟 Perfect Alignment Settings: 72=1 (Center), 73=1 (Vertical Middle)
-            // Changing 73 from 0 to 1 allows the calculation to anchor smoothly to the text body center
-            sb.AppendLine(" 72");
-            sb.AppendLine("  1");
-            sb.AppendLine(" 73");
-            sb.AppendLine("  1");
-
-            // Second alignment coordinates (mandatory for center alignment)
-            sb.AppendLine(" 11");
-            sb.AppendLine(finalX.ToString("F3"));
-            sb.AppendLine(" 21");
-            sb.AppendLine(finalY.ToString("F3"));
-        }
+    sb.Append("  0\nTEXT\n  8\n").Append(layer)
+      .Append("\n 10\n").Append(finalX.ToString("F3", Inv))
+      .Append("\n 20\n").Append(finalY.ToString("F3", Inv))
+      .Append("\n 40\n").Append(height.ToString("F3", Inv))
+      .Append("\n 50\n").Append(cleanAngle.ToString("F3", Inv))
+      .Append("\n  1\n").Append(content)
+      .Append("\n 72\n  1\n 73\n  1")
+      .Append("\n 11\n").Append(finalX.ToString("F3", Inv))
+      .Append("\n 21\n").Append(finalY.ToString("F3", Inv))
+      .Append('\n');
+}
 
         public static double[,] hua_getKBZ(double x1, double y1, double x2, double y2, double[,] points) {
             if (points == null)
@@ -235,41 +169,84 @@ namespace LLutile {
             return result;
         }
 
+/*
+        public static double[,] getMatchedBZ(double[][] data, double target, double tolerance = 3.0)
+{
+    int rows = data.Length;
+    if (rows == 0) return new double[0, 2];
 
-        public static double[,] getMatchedBZ(double[,] data, double target, double tolerance = 3.0) {
-            int rows = data.GetLength(0);
-            if (rows == 0) return new double[0, 2];
+    // 1. 二分查找左边界（第一个 k >= target - tolerance）
+    int left = 0, right = rows;
+    double lower = target - tolerance;
+    while (left < right)
+    {
+        int mid = (left + right) / 2;
+        if (data[mid][0] < lower)
+            left = mid + 1;
+        else
+            right = mid;
+    }
 
-            // 1. 二分查找左边界（第一个 k >= target - tolerance）
-            int left = 0, right = rows;
-            double lower = target - tolerance;
-            while (left < right) {
-                int mid = (left + right) / 2;
-                if (data[mid, 0] < lower)
-                    left = mid + 1;
-                else
-                    right = mid;
-            }
+    // 2. 从左边界开始，收集所有满足 k <= target + tolerance 的点
+    var matched = new List<(double b, double z)>();
+    double upper = target + tolerance;
+    for (int i = left; i < rows && data[i][0] <= upper; i++)
+    {
+        matched.Add((data[i][1], data[i][2]));
+    }
 
-            // 2. 从左边界开始，收集所有满足 k <= target + tolerance 的点
-            var matched = new List<(double b, double z)>();
-            double upper = target + tolerance;
-            for (int i = left; i < rows && data[i, 0] <= upper; i++) {
-                matched.Add((data[i, 1], data[i, 2]));
-            }
+    // 3. 找不到匹配 → 返回矩形空数组
+    if (matched.Count == 0)
+        return new double[0, 2];
 
-            // 3. 按宽度 b 升序排序
-            matched.Sort((a, b) => a.b.CompareTo(b.b));
+    // 4. 按宽度 b 升序排序
+    matched.Sort((a, b) => a.b.CompareTo(b.b));
 
-            // 4. 转换为二维数组
-            int count = matched.Count;
-            double[,] result = new double[count, 2];
-            for (int i = 0; i < count; i++) {
-                result[i, 0] = matched[i].b;
-                result[i, 1] = matched[i].z;
-            }
-            return result;
+    // 5. 转换为二维数组
+    int count = matched.Count;
+    double[,] result = new double[count, 2];
+    for (int i = 0; i < count; i++)
+    {
+        result[i, 0] = matched[i].b;
+        result[i, 1] = matched[i].z;
+    }
+    return result;
+}*/
+public static double[,] getMatchedBZ(double[][] data, double target, double tolerance = 3.0) {
+    int rows = data.Length;
+    if (rows == 0) return new double[0, 2];
+
+    double lower = target - tolerance;
+    int left = 0, right = rows;
+    while (left < right) {
+        int mid = (left + right) >> 1;
+        if (data[mid][0] < lower) left = mid + 1;
+        else right = mid;
+    }
+
+    double upper = target + tolerance;
+
+    int count = 0;
+    for (int i = left; i < rows && data[i][0] <= upper; i++) count++;
+    if (count == 0) return new double[0, 2];
+
+    double[,] result = new double[count, 2];
+    int n = 0;
+    for (int i = left; i < rows && data[i][0] <= upper; i++) {
+        double b = data[i][1];
+        double z = data[i][2];
+        int pos = n - 1;
+        while (pos >= 0 && result[pos, 0] > b) {
+            result[pos + 1, 0] = result[pos, 0];
+            result[pos + 1, 1] = result[pos, 1];
+            pos--;
         }
+        result[pos + 1, 0] = b;
+        result[pos + 1, 1] = z;
+        n++;
+    }
+    return result;
+}
         public static string hua_Num2K(double meters) {
             int km = (int)Math.Floor(meters / 1000);
             double m = meters - km * 1000;
@@ -421,6 +398,7 @@ namespace LLutile {
 
             return new double[] { Math.Round(k, 3), Math.Round(pj, 3) };
         }
+        /**
         /// <summary>
         /// 批量计算（无数组分配，线性查找，并行加速）
         /// </summary>
@@ -510,7 +488,106 @@ namespace LLutile {
             }
 
             return results;
+        }**/
+        public static double[][] hua_Fs_Batch(double[,] pqx, double[,] xy)
+{
+    if (pqx == null || pqx.GetLength(0) == 0 || xy == null || xy.GetLength(0) == 0)
+        return new double[0][];
+
+    // ---------- 预提取线路参数 ----------
+    int segCount = pqx.GetLength(0);
+    double[] startK = new double[segCount];
+    double[] endK = new double[segCount];
+    double[] startX = new double[segCount];
+    double[] startY = new double[segCount];
+    double[] angleRad = new double[segCount];
+    double[] len = new double[segCount];
+    double[] A = new double[segCount], B = new double[segCount], C = new double[segCount];
+
+    for (int i = 0; i < segCount; i++)
+    {
+        startK[i] = pqx[i, 0];
+        len[i] = pqx[i, 4];
+        endK[i] = startK[i] + len[i];
+        startX[i] = pqx[i, 1];
+        startY[i] = pqx[i, 2];
+        angleRad[i] = hua_DmsToRadians(pqx[i, 3]);
+        A[i] = pqx[i, 5];
+        B[i] = pqx[i, 6];
+        C[i] = pqx[i, 7];
+    }
+
+    int pointCount = xy.GetLength(0);
+    double[][] results = new double[pointCount][];
+
+    // ---------- 同步循环（无并行，更稳定） ----------
+    for (int i = 0; i < pointCount; i++)
+    {
+        double fsx = xy[i, 0];
+        double fsy = xy[i, 1];
+        double fsz = xy[i, 2];
+
+        double[] row = new double[3];
+
+        // 初始点：取第一段起点
+        double cx, cy, cAngle;
+        hua_Zs(startK[0], startX[0], startY[0], angleRad[0], len[0],
+               A[0], B[0], C[0], startK[0], 0, 0,
+               out cx, out cy, out cAngle);
+
+        hua_Fwj(cx, cy, fsx, fsy, out double dist, out double az);
+        double k = startK[0];
+        double cz = dist * Math.Cos(az - cAngle);
+        double pj = dist * Math.Sin(az - cAngle);
+
+        double qdlc = startK[0];
+        double zdlc = endK[segCount - 1];
+        int iter = 0;
+        const int maxIter = 15;
+
+        while (Math.Abs(cz) > 0.01 && iter < maxIter)
+        {
+            k += cz;
+            iter++;
+
+            if (k < qdlc) { row[0] = -1; row[1] = -1; row[2] = fsz; results[i] = row; goto NextPoint; }
+            if (k > zdlc) { row[0] = -2; row[1] = -2; row[2] = fsz; results[i] = row; goto NextPoint; }
+
+            // 线性查找所在段
+            int segIdx = 0;
+            for (int j = 0; j < segCount; j++)
+            {
+                if (k >= startK[j] && k <= endK[j])
+                {
+                    segIdx = j;
+                    break;
+                }
+            }
+
+            hua_Zs(startK[segIdx], startX[segIdx], startY[segIdx],
+                   angleRad[segIdx], len[segIdx],
+                   A[segIdx], B[segIdx], C[segIdx],
+                   k, 0, 0,
+                   out cx, out cy, out cAngle);
+
+            hua_Fwj(cx, cy, fsx, fsy, out dist, out az);
+            cz = dist * Math.Cos(az - cAngle);
+            pj = dist * Math.Sin(az - cAngle);
         }
+
+        row[0] = Math.Round(k, 3);
+        row[1] = Math.Round(pj, 3);
+        row[2] = fsz;
+        results[i] = row;
+
+    NextPoint:;
+    }
+
+    // ---------- 按第一列升序排列 ----------
+    Array.Sort(results, (a, b) => a[0].CompareTo(b[0]));
+
+    return results;
+}
         /// <summary>
         /// 无数组分配的 Fwj (out 版)
         /// </summary>
@@ -972,6 +1049,7 @@ namespace LLutile {
             }
             return result.ToArray();
         }
+        /*
         public static double[] hua_CutAndFillArea(double[,] dmx, double[,] sjx, double extendDist) {
             if (extendDist > 0) {
                 int n = dmx.GetLength(0);
@@ -1122,10 +1200,158 @@ namespace LLutile {
             }
 
             return finalResults.ToArray();
+        }*/
+        public static double[] hua_CutAndFillArea(double[,] dmx, double[,] sjx, double extendDist) {
+    if (extendDist > 0) {
+        int n = dmx.GetLength(0);
+        if (n >= 2) {
+            double x1 = dmx[0, 0], y1 = dmx[0, 1];
+            double x2 = dmx[1, 0], y2 = dmx[1, 1];
+            double dx = x1 - x2, dy = y1 - y2;
+            double len = Math.Sqrt(dx * dx + dy * dy);
+            if (len > 1e-12) {
+                dx /= len; dy /= len;
+                dmx[0, 0] = x1 + dx * extendDist;
+                dmx[0, 1] = y1 + dy * extendDist;
+            }
+            x1 = dmx[n - 2, 0]; y1 = dmx[n - 2, 1];
+            x2 = dmx[n - 1, 0]; y2 = dmx[n - 1, 1];
+            dx = x2 - x1; dy = y2 - y1;
+            len = Math.Sqrt(dx * dx + dy * dy);
+            if (len > 1e-12) {
+                dx /= len; dy /= len;
+                dmx[n - 1, 0] = x2 + dx * extendDist;
+                dmx[n - 1, 1] = y2 + dy * extendDist;
+            }
+        }
+    }
+
+    List<double[]> xys = new List<double[]>();
+    double fill = 0;
+    double cut = 0;
+    int lenA = sjx.GetLength(0);
+    int lenB = dmx.GetLength(0);
+
+    for (int i = 0; i < lenA - 1; i++) {
+        double x1 = sjx[i, 0];
+        double y1 = sjx[i, 1];
+        double x2 = sjx[i + 1, 0];
+        double y2 = sjx[i + 1, 1];
+        for (int j = 0; j < lenB - 1; j++) {
+            double x3 = dmx[j, 0];
+            double y3 = dmx[j, 1];
+            double x4 = dmx[j + 1, 0];
+            double y4 = dmx[j + 1, 1];
+            double denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (denom != 0) {
+                double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+                double u = ((x1 - x3) * (y1 - y2) - (y1 - y3) * (x1 - x2)) / denom;
+                if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+                    double px = x1 + t * (x2 - x1);
+                    double py = y1 + t * (y2 - y1);
+                    xys.Add(new double[] { px, py, (double)i, (double)j });
+                }
+            }
+        }
+    }
+
+    double minX = 0.0, maxX = 0.0, minY = 0.0, maxY = 0.0;
+    int leftXysIdx = 0;
+    int rightXysIdx = 0;
+
+    if (xys.Count > 0) {
+        minX = xys[0][0]; maxX = xys[0][0];
+        minY = xys[0][1]; maxY = xys[0][1];
+
+        for (int i = 1; i < xys.Count; i++) {
+            double x = xys[i][0], y = xys[i][1];
+            if (x < minX) {
+                minX = x;
+                leftXysIdx = i;
+            } else if (x > maxX) {
+                maxX = x;
+                rightXysIdx = i;
+            }
+            if (y < minY) minY = y;
+            else if (y > maxY) maxY = y;
+        }
+    }
+
+    // ===== 纯鞋带累加，零 List / 零数组分配 =====
+    for (int idx = 0; idx < xys.Count - 1; idx++) {
+        double[] xy0 = xys[idx];
+        double[] xy1 = xys[idx + 1];
+        int i0 = (int)xy0[2];
+        int i1 = (int)xy1[2];
+        int j0 = (int)xy0[3];
+        int j1 = (int)xy1[3];
+
+        double px = xy0[0], py = xy0[1];
+        double signedArea = 0;
+        double nx, ny;
+
+        for (int k = i0 + 1; k <= i1; k++) {
+            nx = sjx[k, 0]; ny = sjx[k, 1];
+            signedArea += px * ny - py * nx;
+            px = nx; py = ny;
+        }
+        signedArea += px * xy1[1] - py * xy1[0];
+        px = xy1[0]; py = xy1[1];
+
+        for (int k = j1; k > j0; k--) {
+            nx = dmx[k, 0]; ny = dmx[k, 1];
+            signedArea += px * ny - py * nx;
+            px = nx; py = ny;
+        }
+        signedArea += px * xy0[1] - py * xy0[0];
+
+        if (signedArea > 0)
+            cut += signedArea / 2.0;
+        else
+            fill += signedArea / 2.0;
+    }
+
+    List<double[]> finalSjxList = new List<double[]>();
+
+    if (xys.Count >= 2) {
+        double[] leftIntersection = xys[leftXysIdx];
+        double[] rightIntersection = xys[rightXysIdx];
+
+        int leftSjxSegIdx = (int)leftIntersection[2];
+        int rightSjxSegIdx = (int)rightIntersection[2];
+
+        finalSjxList.Add(new double[] { leftIntersection[0], leftIntersection[1] });
+
+        for (int k = leftSjxSegIdx + 1; k <= rightSjxSegIdx; k++) {
+            finalSjxList.Add(new double[] { sjx[k, 0], sjx[k, 1] });
         }
 
+        finalSjxList.Add(new double[] { rightIntersection[0], rightIntersection[1] });
+    } else {
+        for (int k = 0; k < lenA; k++) finalSjxList.Add(new double[] { sjx[k, 0], sjx[k, 1] });
+    }
+
+    List<double> finalResults = new List<double>
+    {
+        Math.Round(fill, 4),
+        Math.Round(cut, 4),
+        minX,
+        maxX,
+        minY,
+        maxY,
+        (double)finalSjxList.Count
+    };
+
+    foreach (var pt in finalSjxList) {
+        finalResults.Add(pt[0]);
+        finalResults.Add(pt[1]);
+    }
+
+    return finalResults.ToArray();
+}
 
 
+/*
         public static double[,] hua_OffsetPolyline(double[,] points, double offset) {
             if (points == null) return null;
             int ptCount = points.GetLength(0);
@@ -1219,7 +1445,114 @@ namespace LLutile {
             // 4. 标准二维数组输出映射
             double[,] output = new double[cleanVertices.Count, 2]; for (int i = 0; i < cleanVertices.Count; i++) { output[i, 0] = cleanVertices[i][0]; output[i, 1] = cleanVertices[i][1]; }
             return output;
+        }*/
+        
+        public static double[,] hua_OffsetPolyline(double[,] points, double offset) {
+    if (points == null) return null;
+    int ptCount = points.GetLength(0);
+    if (ptCount < 2) return (double[,])points.Clone();
+
+    int segmentCount = ptCount - 1;
+    double[,] segLines = new double[segmentCount, 4];
+    bool[] validSeg = new bool[segmentCount];
+
+    for (int i = 0; i < segmentCount; i++) {
+        double dx = points[i + 1, 0] - points[i, 0];
+        double dy = points[i + 1, 1] - points[i, 1];
+        double len = Math.Sqrt(dx * dx + dy * dy);
+        if (len < 1e-8) continue;
+        validSeg[i] = true;
+        double nx = -dy / len;
+        double ny = dx / len;
+        segLines[i, 0] = points[i, 0] + nx * offset;
+        segLines[i, 1] = points[i, 1] + ny * offset;
+        segLines[i, 2] = points[i + 1, 0] + nx * offset;
+        segLines[i, 3] = points[i + 1, 1] + ny * offset;
+    }
+
+    int firstIdx = -1;
+    for (int i = 0; i < segmentCount; i++) if (validSeg[i]) { firstIdx = i; break; }
+    if (firstIdx == -1) return new double[0, 2];
+
+    double[,] rawVertices = new double[segmentCount + 1, 2];
+    int rawCount = 0;
+
+    rawVertices[rawCount, 0] = segLines[firstIdx, 0];
+    rawVertices[rawCount, 1] = segLines[firstIdx, 1];
+    rawCount++;
+
+    int prev = firstIdx;
+    for (int i = firstIdx + 1; i < segmentCount; i++) {
+        if (!validSeg[i]) continue;
+
+        double x1 = segLines[prev, 0], y1 = segLines[prev, 1];
+        double x2 = segLines[prev, 2], y2 = segLines[prev, 3];
+        double x3 = segLines[i, 0], y3 = segLines[i, 1];
+        double x4 = segLines[i, 2], y4 = segLines[i, 3];
+        double denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+        if (Math.Abs(denom) > 1e-8) {
+            double t1 = x1 * y2 - y1 * x2;
+            double t2 = x3 * y4 - y3 * x4;
+            rawVertices[rawCount, 0] = (t1 * (x3 - x4) - (x1 - x2) * t2) / denom;
+            rawVertices[rawCount, 1] = (t1 * (y3 - y4) - (y1 - y2) * t2) / denom;
+        } else {
+            rawVertices[rawCount, 0] = (x2 + x3) / 2.0;
+            rawVertices[rawCount, 1] = (y2 + y3) / 2.0;
         }
+        rawCount++;
+        prev = i;
+    }
+    rawVertices[rawCount, 0] = segLines[prev, 2];
+    rawVertices[rawCount, 1] = segLines[prev, 3];
+    rawCount++;
+
+    double[,] cleanVertices = new double[rawCount, 2];
+    int cleanCount = 0;
+    if (rawCount > 0) {
+        cleanVertices[0, 0] = rawVertices[0, 0];
+        cleanVertices[0, 1] = rawVertices[0, 1];
+        cleanCount = 1;
+    }
+
+    for (int i = 1; i < rawCount; i++) {
+        double cx = rawVertices[i, 0];
+        double cy = rawVertices[i, 1];
+
+        while (cleanCount > 1) {
+            double lastX = cleanVertices[cleanCount - 1, 0];
+            if (cx < lastX - 1e-5) {
+                cleanCount--;
+            } else {
+                break;
+            }
+        }
+
+        double topX = cleanVertices[cleanCount - 1, 0];
+        double topY = cleanVertices[cleanCount - 1, 1];
+        double ddx = cx - topX, ddy = cy - topY;
+        double dist = Math.Sqrt(ddx * ddx + ddy * ddy);
+
+        if (dist > 1e-4) {
+            if (cx < topX + 1e-4 && cleanCount > 1) {
+                cleanVertices[cleanCount - 1, 0] = (topX + cx) / 2.0;
+                cleanVertices[cleanCount - 1, 1] = (topY + cy) / 2.0;
+            } else {
+                cleanVertices[cleanCount, 0] = cx;
+                cleanVertices[cleanCount, 1] = cy;
+                cleanCount++;
+            }
+        }
+    }
+
+    double[,] output = new double[cleanCount, 2];
+    for (int i = 0; i < cleanCount; i++) {
+        output[i, 0] = cleanVertices[i, 0];
+        output[i, 1] = cleanVertices[i, 1];
+    }
+    return output;
+}
+        
         public static double[] hua_CircleFrom3Points(double x1, double y1, double x2, double y2, double x3, double y3) {
             double A = x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2;
             double B = (x1 * x1 + y1 * y1) * (y3 - y2) + (x2 * x2 + y2 * y2) * (y1 - y3) + (x3 * x3 + y3 * y3) * (y2 - y1);
