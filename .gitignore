@@ -1,0 +1,22 @@
+# 编译产物
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# 发布产物
+publish-win64/
+win64single/
+publish/
+*.xll
+*.packed.xll
+
+# 数据文件
+*.xlsx
+
+# 输出
+*result/
+*_出图.html
+*_土方数据.csv
+*_出错位置.txt
