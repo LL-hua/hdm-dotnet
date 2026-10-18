@@ -601,7 +601,85 @@ public static double[][] hua_OffsetPolyline(double[][] points, double offset)
     }
     return output;
 }
+/**
+public static double[][]? Offset(double[][]? pts, double d)
+{
+    if (pts is null) return null;
+    if (pts.Length < 2 || Math.Abs(d) < 1e-12)
+    {
+        var copy = new double[pts.Length][];
+        for (int i = 0; i < pts.Length; i++) copy[i] = (double[])pts[i].Clone();
+        return copy;
+    }
 
+    // 1. 每段法向平移：左法线 = (-uy, ux)，offset > 0 偏向 y 增大一侧
+    var segs = new List<(double x0, double y0, double x1, double y1,
+                         double ux, double uy)>();
+    for (int i = 0; i < pts.Length - 1; i++)
+    {
+        double dx = pts[i + 1][0] - pts[i][0];
+        double dy = pts[i + 1][1] - pts[i][1];
+        double len = Math.Sqrt(dx * dx + dy * dy);
+        if (len < 1e-8) continue;
+        double ux = dx / len, uy = dy / len;
+        segs.Add((pts[i][0]     - uy * d, pts[i][1]     + ux * d,
+                  pts[i + 1][0] - uy * d, pts[i + 1][1] + ux * d, ux, uy));
+    }
+
+    // 2/3. 求交 → 反转则删 → 重算
+    // 每轮至少删一段，最多 n 轮，必然终止
+    while (true)
+    {
+        int m = segs.Count;
+        if (m == 0) return Array.Empty<double[]>();
+
+        var jx = new double[m + 1];
+        var jy = new double[m + 1];
+        jx[0] = segs[0].x0;       jy[0] = segs[0].y0;
+        jx[m] = segs[m - 1].x1;   jy[m] = segs[m - 1].y1;
+
+        // miter：相邻无限直线求交
+        for (int k = 1; k < m; k++)
+        {
+            var a = segs[k - 1];
+            var b = segs[k];
+            double den = a.ux * b.uy - a.uy * b.ux;
+            if (Math.Abs(den) < 1e-12)
+            {
+                // 共线：偏移后仍共线，取中点等价于延续（函数曲线上成立）
+                jx[k] = (a.x1 + b.x0) / 2;
+                jy[k] = (a.y1 + b.y0) / 2;
+            }
+            else
+            {
+                double t = ((b.x0 - a.x0) * b.uy - (b.y0 - a.y0) * b.ux) / den;
+                jx[k] = a.x0 + a.ux * t;
+                jy[k] = a.y0 + a.uy * t;
+            }
+        }
+
+        // 精确判据：偏移后方向与原方向反向
+        int bad = -1;
+        for (int k = 0; k < m; k++)
+        {
+            if ((jx[k + 1] - jx[k]) * segs[k].ux +
+                (jy[k + 1] - jy[k]) * segs[k].uy < 0)
+            {
+                bad = k;
+                break;
+            }
+        }
+
+        if (bad < 0)
+        {
+            var result = new double[m + 1][];
+            for (int k = 0; k <= m; k++) result[k] = new[] { jx[k], jy[k] };
+            return result;
+        }
+        segs.RemoveAt(bad);
+    }
+}
+**/
 /// <summary>构建清表面积多边形</summary>
 public static double[][] BuildClearPolygon(double[][] ground, double[][] cleared, double minX, double maxX)
 {
