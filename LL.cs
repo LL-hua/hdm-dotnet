@@ -24,13 +24,16 @@ namespace Hdm
         /// <summary>度分秒（DDD.MMSS）→ 弧度</summary>
         public static double hua_DmsToRadians(double dms)
         {
-            int degrees = (int)dms;
-            double fractional = dms - degrees;
-            int minutes = (int)(fractional * 100);
-            double seconds = (fractional * 100 - minutes) * 100;
-            double totalDegrees = degrees + minutes / 60.0 + seconds / 3600.0;
-            return totalDegrees * Math.PI / 180.0;
-        }
+            double sign = dms < 0 ? -1 : 1;
+        double v = Math.Abs(dms);
+        int degrees = (int)v;
+        double mmss = Math.Round((v - degrees) * 100.0, 6, MidpointRounding.AwayFromZero);
+        int minutes = (int)mmss;
+        double seconds = Math.Round((mmss - minutes) * 100.0, 6, MidpointRounding.AwayFromZero);
+        if (seconds >= 60.0) { seconds -= 60.0; minutes += 1; }
+        if (minutes >= 60)   { minutes -= 60; degrees += 1; }
+        return sign * (degrees + minutes / 60.0 + seconds / 3600.0) * Math.PI / 180.0;
+    }
 
         /// <summary>弧度 → 度分秒（DDD.MMSS）</summary>
         public static double hua_radiansToDMS(double radians)
